@@ -1,0 +1,45 @@
+{
+  "extends": ["react-app", "eslint:recommended", "plugin:prettier/recommended"],
+  "overrides": [
+    {
+      "files": ["**/*.ts?(x)"],
+      "rules": {
+        "react/jsx-wrap-multilines": ["error", {"arrow": true, "return": true, "declaration": true}],
+        "react/jsx-curly-newline": "off",
+        "react/self-closing-comp": ["error", {"component": false, "html": true}],
+        "@typescript-eslint/no-unused-vars": "warn",
+        "react/prop-types": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "react/jsx-props-no-spreading": 0,
+        "import/prefer-default-export": "off",
+        "no-console": ["warn", {"allow": ["warn", "error"]}],
+        "prettier/prettier": "warn",
+        "no-unused-vars": "warn",
+        "no-constant-condition": "warn",
+        "no-extra-boolean-cast": "warn",
+        "prefer-arrow-callback": ["error", {"allowNamedFunctions": true}],
+        "object-shorthand": "error",
+        "func-style": ["error", "expression"]
+      }
+    }
+  ],
+  "parser": "@typescript-eslint/parser",
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "paths": ["src"]
+      },
+      "react": {
+        "version": "detect"
+      }
+    }
+  },
+  "parserOptions": {
+    "createDefaultProgram": true,
+    "ecmaVersion": 6
+  },
+  "globals": {
+    "React": true
+  },
+  "plugins": ["react", "prettier"]
+}

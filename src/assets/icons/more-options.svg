@@ -1,0 +1,8 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" class="more" xmlns="http://www.w3.org/2000/svg">
+<circle cx="20" cy="20" r="2" fill="#A3A3A3"/>
+<circle cx="15" cy="20" r="2" fill="#A3A3A3"/>
+<circle cx="25" cy="20" r="2" fill="#A3A3A3"/>
+<g style="mix-blend-mode:multiply">
+<rect width="40" height="40" rx="20"/>
+</g>
+</svg>

@@ -1,0 +1,246 @@
+Build Frontend dev:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export TAG=development
+  script:
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://europe-docker.pkg.dev
+    - docker build -t nftstars-frontend:$TAG .
+    - echo $TAG
+    - docker image tag nftstars-frontend:$TAG europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+    - docker push europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+  only:
+    - development
+
+
+Deploy Frontend dev:
+  stage: deploy
+  image: google/cloud-sdk:alpine
+  before_script:
+    - export TAG=development
+  script:
+    - base64 -d $GCP_SA_KEY > gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud run deploy nftstars-frontend
+      --image=europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+      --service-account=105949661811-compute@developer.gserviceaccount.com
+      --allow-unauthenticated 
+      --concurrency=80
+      --platform=managed
+      --region=europe-north1
+      --project=vrm-nftstars
+      --vpc-connector=nftstars-services
+      --port=80
+  only:
+    - development
+
+Build Frontend stage:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export TAG=stage
+  script:
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://europe-docker.pkg.dev
+    - sed -i -e 's/dev/stage/g' Dockerfile
+    - docker build -t nftstars-frontend:$TAG .
+    - echo $TAG
+    - docker image tag nftstars-frontend:$TAG europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+    - docker push europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+  only:
+    - stage
+  when: manual
+
+
+Deploy Frontend stage:
+  needs:
+    - Build Frontend stage
+  stage: deploy
+  image: google/cloud-sdk:alpine
+  before_script:
+    - export TAG=stage
+  script:
+    - base64 -d $GCP_SA_KEY > gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud run deploy nftstars-frontend-stage
+      --image=europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+      --service-account=105949661811-compute@developer.gserviceaccount.com
+      --concurrency=80
+      --allow-unauthenticated 
+      --platform=managed
+      --region=europe-north1
+      --project=vrm-nftstars
+      --vpc-connector=nftstars-services
+      --port=80
+  only:
+    - stage
+
+Build Frontend preprod:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export TAG=preprod
+  script:
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://europe-docker.pkg.dev
+    - sed -i -e 's/dev/preprod/g' Dockerfile
+    - docker build -t nftstars-frontend:$TAG .
+    - echo $TAG
+    - docker image tag nftstars-frontend:$TAG europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+    - docker push europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+  only:
+    - preprod
+  when: manual
+
+
+Deploy Frontend preprod:
+  stage: deploy
+  needs:
+    - Build Frontend preprod
+  image: google/cloud-sdk:alpine
+  before_script:
+    - export TAG=preprod
+  script:
+    - base64 -d $GCP_SA_KEY > gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud run deploy nftstars-frontend-preprod
+      --image=europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+      --service-account=105949661811-compute@developer.gserviceaccount.com
+      --concurrency=80
+      --allow-unauthenticated 
+      --platform=managed
+      --region=europe-north1
+      --project=vrm-nftstars
+      --vpc-connector=nftstars-services
+      --port=80
+  only:
+    - preprod
+
+Build Frontend prod:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export TAG=stable
+  script:
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://europe-docker.pkg.dev
+    - sed -i -e 's/dev/prod/g' Dockerfile
+    - docker build -t nftstars-frontend:$TAG .
+    - echo $TAG
+    - docker image tag nftstars-frontend:$TAG europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+    - docker push europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+  only:
+    - main
+  when: manual
+
+
+Deploy Frontend prod:
+  stage: deploy
+  needs:
+    - Build Frontend prod
+  image: google/cloud-sdk:alpine
+  before_script:
+    - export TAG=stable
+  script:
+    - base64 -d $GCP_SA_KEY > gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud run deploy nftstars-frontend-prod
+      --image=europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+      --service-account=105949661811-compute@developer.gserviceaccount.com
+      --concurrency=80
+      --allow-unauthenticated 
+      --platform=managed
+      --region=europe-north1
+      --project=vrm-nftstars
+      --vpc-connector=nftstars-services
+      --port=80
+  only:
+    - main
+
+Build Frontend demo:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export TAG=demo
+  script:
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://europe-docker.pkg.dev
+    - sed -i -e 's/dev/demo/g' Dockerfile
+    - docker build -t nftstars-frontend:$TAG .
+    - echo $TAG
+    - docker image tag nftstars-frontend:$TAG europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+    - docker push europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+  only:
+    - demo
+  when: manual
+
+
+Deploy Frontend demo:
+  stage: deploy
+  needs:
+    - Build Frontend demo
+  image: google/cloud-sdk:alpine
+  before_script:
+    - export TAG=demo
+  script:
+    - base64 -d $GCP_SA_KEY > gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud run deploy nftstars-frontend-demo
+      --image=europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+      --service-account=105949661811-compute@developer.gserviceaccount.com
+      --concurrency=80
+      --allow-unauthenticated 
+      --platform=managed
+      --region=europe-north1
+      --project=vrm-nftstars
+      --vpc-connector=nftstars-services
+      --port=80
+  only:
+    - demo
+
+Build Frontend test:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export TAG=test
+  script:
+    - base64 -d $GCP_SA_KEY | docker login -u _json_key --password-stdin https://europe-docker.pkg.dev
+    - sed -i -e 's/dev/test/g' Dockerfile
+    - docker build -t nftstars-frontend:$TAG .
+    - echo $TAG
+    - docker image tag nftstars-frontend:$TAG europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+    - docker push europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+  only:
+    - test
+  when: manual
+
+
+Deploy Frontend test:
+  stage: deploy
+  needs:
+    - Build Frontend test
+  image: google/cloud-sdk:alpine
+  before_script:
+    - export TAG=test
+  script:
+    - base64 -d $GCP_SA_KEY > gcloud-service-key.json
+    - gcloud auth activate-service-account --key-file gcloud-service-key.json
+    - gcloud run deploy nftstars-frontend-test
+      --image=europe-docker.pkg.dev/vrm-nftstars/nftstars-frontend/nftstars-frontend:$TAG
+      --service-account=105949661811-compute@developer.gserviceaccount.com
+      --concurrency=80
+      --platform=managed
+      --region=europe-north1
+      --project=vrm-nftstars
+      --vpc-connector=nftstars-services
+      --port=80
+  only:
+    - test
